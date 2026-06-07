@@ -342,6 +342,23 @@ System Time represents when the warehouse recorded the event.
 
 This enables historical reconstruction and auditability of financial market data.
 
+## Unit Tests
+
+The project includes unit tests for the service/DAL layer.
+
+Covered cases:
+
+- Asset creation with temporal metadata
+- Temporal asset update
+- Temporal soft delete marker
+- Asset pagination
+- Idempotent time-series ingestion
+
+Run tests with:
+
+```bash
+pytest -v
+
 # Example Workflow
 
 ### Step 1
