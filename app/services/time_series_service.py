@@ -57,21 +57,48 @@ class TimeSeriesService:
         if not documents:
             return {
                 "inserted_count": 0,
+                "updated_count": 0,
+                "total_processed": 0,
                 "records": []
             }
 
-        result = await db[TimeSeriesService.COLLECTION].insert_many(documents)
+        inserted_count = 0
+        updated_count = 0
+        processed_records = []
 
-        inserted_records = await db[TimeSeriesService.COLLECTION].find({
-            "_id": {"$in": result.inserted_ids}
-        }).to_list(length=None)
+        for document in documents:
+            result = await db[TimeSeriesService.COLLECTION].replace_one(
+                {
+                    "asset_id": document["asset_id"],
+                    "data_source_id": document["data_source_id"],
+                    "business_date": document["business_date"],
+                    "provenance.source": document["provenance"]["source"]
+                },
+                document,
+                upsert=True
+            )
+
+            if result.upserted_id:
+                inserted_count += 1
+            else:
+                updated_count += 1
+
+            saved_record = await db[TimeSeriesService.COLLECTION].find_one({
+                "asset_id": document["asset_id"],
+                "data_source_id": document["data_source_id"],
+                "business_date": document["business_date"],
+                "provenance.source": document["provenance"]["source"]
+            })
+
+            processed_records.append(
+                TimeSeriesService.clean_mongo_document(saved_record)
+            )
 
         return {
-            "inserted_count": len(result.inserted_ids),
-            "records": [
-                TimeSeriesService.clean_mongo_document(record)
-                for record in inserted_records
-            ]
+            "inserted_count": inserted_count,
+            "updated_count": updated_count,
+            "total_processed": len(documents),
+            "records": processed_records
         }
 
     @staticmethod

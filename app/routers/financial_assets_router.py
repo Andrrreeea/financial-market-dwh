@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from app.models.schemas import (
     FinancialAssetCreate
@@ -24,8 +24,14 @@ async def create_asset(
 
 
 @router.get("/")
-async def get_assets():
-    return await FinancialAssetService.get_all_assets()
+async def get_assets(
+    offset: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100)
+):
+    return await FinancialAssetService.get_all_assets(
+        offset=offset,
+        limit=limit
+    )
 
 
 @router.get("/{asset_id}")

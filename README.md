@@ -45,8 +45,26 @@ The project implements a Financial Market Data Warehouse capable of:
 * Historical preservation
 * Heterogeneous attributes
 * Provenance metadata
+* Idempotent ingestion
+* Temporal query support
 
 ## External Data Ingestion
+
+## Data Provenance
+
+Every record stored in the warehouse contains provenance metadata.
+
+Tracked provenance information includes:
+
+* Source provider
+* Data source identifier
+* Ingestion timestamp
+* API endpoint origin
+* Dataset or table code
+* Operation type
+* Version history
+
+This enables full auditability and traceability of warehouse contents.
 
 ### Manual Data Ingestion
 
@@ -104,26 +122,36 @@ Workflow:
 POST /analytics/predict-close
 ```
 
+## Analytics Persistence
+
+Analytical and machine learning results are persisted inside MongoDB.
+
+Collections include:
+
+* analytics_aggregations
+* analytics_predictions
+
+This allows analytical workflows to be executed independently from data consumption workflows.
+
 ## MCP Integration
 
-The platform exposes warehouse capabilities through MCP tools.
+The platform exposes warehouse functionality through MCP (Model Context Protocol) tools.
 
-Available MCP capabilities include:
+Implemented MCP capabilities include:
 
-* Asset discovery
-* Asset history retrieval
-* Time-series retrieval
-* Analytics retrieval
-* Prediction retrieval
+* List Financial Assets
+* Get Asset Details
+* Get Asset History
+* Retrieve Time-Series Data
+* Retrieve Aggregation Results
+* Retrieve Prediction Results
+* List Data Sources
+* Query Warehouse Metadata
 
-This enables integration with AI agents and LLM-powered assistants.
-
----
+The MCP server acts as an integration layer between the data warehouse and AI agents, enabling grounded responses based on warehouse contents.
 
 # Technology Stack
 
-| Component            | Technology              |
-| -------------------- | ----------------------- |
 | API Layer            | FastAPI                 |
 | Database             | MongoDB                 |
 | Big Data Processing  | Apache Spark            |
@@ -132,8 +160,7 @@ This enables integration with AI agents and LLM-powered assistants.
 | Data Model           | Temporal Document Model |
 | External Provider    | Nasdaq Data Link        |
 | Agent Integration    | MCP                     |
-
----
+| Data Access Layer    | Repository Pattern      |
 
 # Project Structure
 
@@ -213,13 +240,31 @@ http://127.0.0.1:8000/docs
 
 ---
 
+# Indexing Strategy
+
+To optimize warehouse queries, MongoDB indexes are created for:
+
+* asset_id
+* data_source_id
+* business_date
+* system_time
+* is_current
+* is_deleted
+
+Indexes improve:
+
+* Asset retrieval
+* Historical queries
+* Time-series lookups
+* Analytics consumption
+
 # Main API Endpoints
 
 ## Assets
 
 ```http
 POST /assets
-GET /assets
+GET /assets?offset=0&limit=20
 GET /assets/{asset_id}
 PUT /assets/{asset_id}
 DELETE /assets/{asset_id}
@@ -283,6 +328,19 @@ GET /assets/{asset_id}/history
 This approach preserves complete auditability and historical traceability.
 
 ---
+
+# Temporal Query Semantics
+
+The warehouse implements bitemporal-inspired concepts using:
+
+* Business Time
+* System Time
+
+Business Time represents when an event occurred in the financial domain.
+
+System Time represents when the warehouse recorded the event.
+
+This enables historical reconstruction and auditability of financial market data.
 
 # Example Workflow
 
@@ -373,21 +431,19 @@ GET /analytics/predictions
 * Data Warehousing
 * Temporal Databases
 * Data Provenance
-* Financial Market Data Management
-* Big Data Processing
+* ETL Pipelines
+* Financial Time-Series Warehousing
 * Apache Spark
 * Spark MLlib
-* REST API Design
-* External Data Integration
-* MCP Integration
-* Financial Analytics
+* Machine Learning Pipelines
+* MCP (Model Context Protocol)
+* External Provider Integration
+* REST API Architecture
 
 ---
 
 # Author
 
 Andreea Longodor
-
-Bachelor of Engineering
 
 Financial Market Data Warehouse
